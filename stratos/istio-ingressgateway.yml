@@ -1,0 +1,10 @@
+## Add a passthrough for console
+  - hosts:
+    - cf-stratos/console.cloudgaap.pagopa.it
+    - cf-stratos/*.console.cloudgaap.pagopa.it
+    port:
+      name: https-console
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: PASSTHROUGH

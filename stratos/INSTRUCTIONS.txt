@@ -1,0 +1,2 @@
+helm repo add stratos https://cloudfoundry.github.io/stratos
+helm upgrade cf-stratos stratos/console --values values.yaml --namespace cf-stratos --create-namespace --install

@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: stratos-external-virtual-service
+  namespace: cf-stratos
+spec:
+  gateways:
+  - cf-system/istio-ingressgateway
+  hosts:
+  - console.cloudgaap.pagopa.it
+  tls:
+  - match:
+    - port: 443
+      sniHosts:
+      - console.cloudgaap.pagopa.it
+    route:
+    - destination:
+        host: cf-stratos-ui-ext.cf-stratos.svc.cluster.local

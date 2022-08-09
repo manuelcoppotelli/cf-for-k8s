@@ -1,0 +1,52 @@
+git clone https://github.com/cloudfoundry/cf-for-k8s.git -b main
+
+cd cf-for-k8s
+
+TMP_DIR=/Users/manuelcoppotelli/Desktop/cf-for-k8s/tmp
+
+mkdir -p ${TMP_DIR}
+
+kind create cluster --config=./deploy/kind/cluster.yml --image kindest/node:v1.20.2
+
+./hack/generate-values.sh -d cf.test.manuelcoppotelli.me > ${TMP_DIR}/cf-values.yml
+
+cat << EOF >> ${TMP_DIR}/cf-values.yml
+app_registry:
+  hostname: https://index.docker.io/v1/
+  repository_prefix: "<my_username>"
+  username: "<my_username>"
+  password: "<my_password>"
+
+add_metrics_server_components: true
+enable_automount_service_account_token: true
+load_balancer:
+  enable: false
+metrics_server_prefer_internal_kubelet_address: true
+remove_resource_requirements: true
+EOF
+
+ytt -f config -f ${TMP_DIR}/cf-values.yml > ${TMP_DIR}/cf.yaml
+
+kapp deploy -a cf -f cf.yaml
+
+# Remove livenessProbe from failed Deployment
+
+# USER
+
+cf api api.cf.test.manuelcoppotelli.me --skip-ssl-validation
+
+cf auth admin "$(grep cf_admin_password ${TMP_DIR}/cf-values.yml | cut -d" " -f2)"
+
+cf create-org my-org
+
+cf create-space my-space -o my-org
+
+cf target -o my-org -s my-space
+
+# DEMO APP
+
+git clone https://github.com/cloudfoundry-samples/test-app.git
+
+cd test-app
+
+cf push test-app
